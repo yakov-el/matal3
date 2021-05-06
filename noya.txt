@@ -1,0 +1,60 @@
+import json
+
+handle= open('D:/noya.txt', 'r',  encoding='utf-8')
+
+
+def diction(handle:str): 
+    dic_id=dict()
+    dic_1=dict()
+    metadata=dict()
+    num=1
+    lst=list()
+    chat_name = 0
+    dic_2 = {}
+    
+    for line in handle:    # כאן נחתוך את השם \ מספר פלאפון
+        start=line.find('-')
+        end=line.find(':',start)        
+        word_1=line.find('הקבוצה')
+        word_2=line.find('נוצרה')
+        
+        if end>0:    
+            name=line[start+1:end]                          
+            
+            if name not in dic_id:   #  כאן נוסיף את השם למילון
+               dic_id[name]=num
+               num=num+1
+            
+            dic_1['date']= line[0:15]
+            tmp = line.split(':')
+            dic_1['text'] = tmp[2]
+            name_as_id= str(dic_id[name])
+            dic_1['id'] = name_as_id
+            lst.append({ 'id' : name_as_id, 'date': dic_1['date'] , 'text': dic_1['text'].strip()})
+        
+        if word_1>0 and word_2>0 and word_2 > word_1:
+            metadata['chat_name']=line[line.find('"')+1:word_2-2]
+            metadata['creation_date']=line[0:15]
+            metadata['creator']=line[word_2+12:]
+            chat_name = line[line.find('"')+1:word_2-2]
+        
+        metadata['num_of_participants']=str(num-1)      
+        
+        if start<0 : 
+           dic_1['text']= (dic_1['text']+line).strip()
+           lst.append(dic_1.copy())
+           
+    dic_2['messages'] = lst
+    dic_2['metadata'] = metadata
+    return dic_2, chat_name
+
+t, chat_name = diction(handle)
+
+file_name = chat_name + '.txt'
+file = open(file_name, "w", encoding = 'utf-8')
+json.dump(t, file, ensure_ascii = False, indent=6)
+file.close()
+file = open(file_name, "r", encoding="utf-8")
+
+print(json.load(file))
+file.close()
